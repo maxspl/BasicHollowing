@@ -36,7 +36,8 @@ systeminfo.exe seems to be work with all my payloads.
 2. In main.rs : remove #[no_mangle], rename "pub extern "C" fn main()" as "fn main()"
 3. cargo run will print all debug logs
 4. Cargo build --release will build an exe that displays only informational steps
-![Alt text](/assets/logs.png)
+
+![Alt text](/assets/log.png)
 
 # References
     - https://www.timdbg.com/posts/writing-a-debugger-from-scratch-part-2/
