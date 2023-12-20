@@ -29,7 +29,7 @@ rundll32.exe .\target\release\process_hollow.dll,main
 
 # Note 
 I don't know why, but it doesn't work on all target processes. 
-systeminfo.exe seems to be work with all my payloads.
+systeminfo.exe seems to work with all my payloads.
 
 # How to debug ?
 1. Rename lib.rs as main.rs
