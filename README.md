@@ -9,9 +9,25 @@ Target process is set in lib.rs :
 let pe_to_exec = "C:\\Windows\\System32\\systeminfo.exe";
 ```
 
-PE to inject is also set in lib.rs :
+PE to inject is also set in lib.rs
+
+To perform hollowing from a local PE to inject :
 ```
 let file_to_load = "sample.exe";
+```
+
+To perform hollowing from a remote PE to inject :
+Comment in lib.rs
+```
+buf = retrieve_local_pe();
+```
+Uncomment in lib.rs
+```
+//buf = retrieve_url_pe();
+```
+Change remote URL
+```
+    let url = "http://127.0.0.1/sample.exe";
 ```
 
 sample.exe is provided, it's just a basic c programm displaying a messagebox once injected.

