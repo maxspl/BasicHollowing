@@ -3,21 +3,27 @@ name = "process_hollow"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-[lib]
-crate-type = ["cdylib"]
+
+[profile.release]
+strip = "symbols"
+opt-level = "z"
+lto = true
+
+# [lib]
+# crate-type = ["cdylib"]
 
 [dependencies]
-log = "0.4.20"
+log = "0.4.29"
 ntapi = "0.4.1"
 winapi = { version = "0.3.9", features = ["errhandlingapi", "fileapi", "handleapi", "memoryapi", "minwindef", "ntdef", "processthreadsapi", "winbase", "winnt"] }
-anyhow = "1.0.38"
-env_logger = "0.9"
-reqwest = { version = "0.11", features = ["blocking"] }
-ureq = "2.3"
+anyhow = "1.0.100"
+env_logger = "0.11.8"
+ureq = "3.1.4"
+flate2 = "1.1.5"
+aes-gcm = "0.10.3"
 
 [dependencies.windows-sys]
-version = "0.52.0"
+version = "0.61.2"
 features = [
     "Win32_System_Memory",
     "Win32_Foundation",
@@ -31,3 +37,7 @@ features = [
     "Win32_System_SystemInformation",
     "Win32_System_SystemServices"
 ]
+
+[build-dependencies]
+flate2 = "1.0"
+aes-gcm = "0.10.3"

